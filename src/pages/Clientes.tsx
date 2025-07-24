@@ -12,12 +12,17 @@ import {
   DollarSign,
   Package,
   Clock,
-  Target
+  Target,
+  Star,
+  Award
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DashboardCard } from "@/components/DashboardCard";
 import { Badge } from "@/components/ui/badge";
+import { AgendamentoModal } from "@/components/AgendamentoModal";
+import { NotaModal } from "@/components/NotaModal";
+import { useToast } from "@/hooks/use-toast";
 
 // Mock data
 const mockClients = [
@@ -39,7 +44,9 @@ const mockClients = [
     brands: ["Marca A", "Marca B"],
     orders12m: 24,
     avgTicket: 7500,
-    notes: 3
+    notes: 3,
+    agendamentos: 3,
+    notas: 4
   },
   {
     id: 2,
@@ -59,7 +66,9 @@ const mockClients = [
     brands: ["Marca C"],
     orders12m: 18,
     avgTicket: 5333,
-    notes: 5
+    notes: 5,
+    agendamentos: 2,
+    notas: 1
   },
   {
     id: 3,
@@ -79,13 +88,35 @@ const mockClients = [
     brands: ["Marca A", "Marca D"],
     orders12m: 32,
     avgTicket: 8750,
-    notes: 2
+    notes: 2,
+    agendamentos: 4,
+    notas: 3
   }
 ];
 
 export default function Clientes() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedClient, setSelectedClient] = useState<typeof mockClients[0] | null>(null);
+  const [agendamentoModalOpen, setAgendamentoModalOpen] = useState(false);
+  const [notaModalOpen, setNotaModalOpen] = useState(false);
+  const [pontos, setPontos] = useState(1450); // Mock pontos do vendedor
+  const [agendamentos, setAgendamentos] = useState<Array<{
+    id: number;
+    clienteId: number;
+    data: Date;
+    horario: string;
+    duracao: string;
+    objetivo: string;
+  }>>([]);
+  const [notas, setNotas] = useState<Array<{
+    id: number;
+    clienteId: number;
+    texto: string;
+    data: Date;
+    vendedor: string;
+  }>>([]);
+  
+  const { toast } = useToast();
 
   const filteredClients = mockClients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -95,6 +126,64 @@ export default function Clientes() {
   const totalSalesThisMonth = mockClients.reduce((sum, client) => sum + client.salesThisMonth, 0);
   const clientsWithTarget = mockClients.filter(client => client.progress >= 100).length;
   const avgProgress = mockClients.reduce((sum, client) => sum + client.progress, 0) / mockClients.length;
+
+  // Verificar se o cliente está "Ativo e Engajado"
+  const isClienteEngajado = (client: typeof mockClients[0]) => {
+    return client.agendamentos >= 3 && client.notas >= 2;
+  };
+
+  const handleAgendamento = (agendamento: {
+    data: Date;
+    horario: string;
+    duracao: string;
+    objetivo: string;
+  }) => {
+    if (!selectedClient) return;
+
+    const novoAgendamento = {
+      id: Date.now(),
+      clienteId: selectedClient.id,
+      ...agendamento
+    };
+
+    setAgendamentos(prev => [...prev, novoAgendamento]);
+    setPontos(prev => prev + 10);
+    
+    toast({
+      title: "Agendamento confirmado! 🎯",
+      description: `+10 pontos! Interação agendada para ${agendamento.data.toLocaleDateString('pt-BR')} às ${agendamento.horario}`,
+    });
+  };
+
+  const handleNota = (nota: {
+    texto: string;
+    data: Date;
+    vendedor: string;
+  }) => {
+    if (!selectedClient) return;
+
+    const novaNota = {
+      id: Date.now(),
+      clienteId: selectedClient.id,
+      ...nota
+    };
+
+    setNotas(prev => [...prev, novaNota]);
+    setPontos(prev => prev + 5);
+    
+    toast({
+      title: "Nota salva! 📝",
+      description: "+5 pontos! Nota de interação registrada com sucesso",
+    });
+  };
+
+  const getClienteAgendamentos = (clienteId: number) => {
+    return agendamentos.filter(ag => ag.clienteId === clienteId);
+  };
+
+  const getClienteNotas = (clienteId: number) => {
+    return notas.filter(nota => nota.clienteId === clienteId);
+  };
 
   return (
     <div className="space-y-6">
@@ -186,7 +275,17 @@ export default function Clientes() {
                       }`} />
                       
                       <div>
-                        <h3 className="font-semibold text-foreground">{client.name}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-foreground">{client.name}</h3>
+                          {isClienteEngajado(client) && (
+                            <div className="flex items-center gap-1">
+                              <Award className="h-4 w-4 text-success" />
+                              <Badge variant="default" className="bg-success text-success-foreground text-xs">
+                                🟢 Ativo & Engajado
+                              </Badge>
+                            </div>
+                          )}
+                        </div>
                         <p className="text-sm text-muted-foreground">{client.contact}</p>
                         <div className="flex items-center gap-4 mt-1">
                           <span className="text-xs text-muted-foreground flex items-center gap-1">
@@ -318,13 +417,71 @@ export default function Clientes() {
                   </div>
                 </div>
 
+                {/* Histórico de Interações */}
+                <div>
+                  <h5 className="text-sm font-medium text-foreground mb-3">Próximas Interações</h5>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {getClienteAgendamentos(selectedClient.id).map((agendamento) => (
+                      <div key={agendamento.id} className="bg-muted rounded p-2">
+                        <div className="flex items-center gap-2 text-xs">
+                          <Calendar className="h-3 w-3 text-primary" />
+                          <span className="font-medium">
+                            {agendamento.data.toLocaleDateString('pt-BR')} às {agendamento.horario}
+                          </span>
+                          <Badge variant="secondary" className="text-xs">
+                            {agendamento.duracao}min
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">{agendamento.objetivo}</p>
+                      </div>
+                    ))}
+                    {getClienteAgendamentos(selectedClient.id).length === 0 && (
+                      <p className="text-xs text-muted-foreground">Nenhuma interação agendada</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Histórico de Notas */}
+                <div>
+                  <h5 className="text-sm font-medium text-foreground mb-3">Últimas Notas</h5>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {getClienteNotas(selectedClient.id)
+                      .sort((a, b) => b.data.getTime() - a.data.getTime())
+                      .slice(0, 3)
+                      .map((nota) => (
+                      <div key={nota.id} className="bg-muted rounded p-2">
+                        <div className="flex items-center gap-2 text-xs mb-1">
+                          <MessageSquare className="h-3 w-3 text-primary" />
+                          <span className="font-medium">{nota.vendedor}</span>
+                          <span className="text-muted-foreground">
+                            {nota.data.toLocaleDateString('pt-BR')} {nota.data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{nota.texto}</p>
+                      </div>
+                    ))}
+                    {getClienteNotas(selectedClient.id).length === 0 && (
+                      <p className="text-xs text-muted-foreground">Nenhuma nota registrada</p>
+                    )}
+                  </div>
+                </div>
+
                 {/* Quick Actions */}
                 <div className="space-y-2">
-                  <Button className="w-full" size="sm">
+                  <Button 
+                    className="w-full bg-gradient-primary hover:bg-primary-dark" 
+                    size="sm"
+                    onClick={() => setAgendamentoModalOpen(true)}
+                  >
                     <Calendar className="h-4 w-4 mr-2" />
                     Agendar Interação
                   </Button>
-                  <Button variant="outline" className="w-full" size="sm">
+                  <Button 
+                    variant="outline" 
+                    className="w-full" 
+                    size="sm"
+                    onClick={() => setNotaModalOpen(true)}
+                  >
                     <MessageSquare className="h-4 w-4 mr-2" />
                     Adicionar Nota
                   </Button>
@@ -341,6 +498,20 @@ export default function Clientes() {
           )}
         </div>
       </div>
+
+      {/* Modals */}
+      <AgendamentoModal
+        isOpen={agendamentoModalOpen}
+        onClose={() => setAgendamentoModalOpen(false)}
+        onConfirm={handleAgendamento}
+        agendamentosExistentes={agendamentos}
+      />
+
+      <NotaModal
+        isOpen={notaModalOpen}
+        onClose={() => setNotaModalOpen(false)}
+        onConfirm={handleNota}
+      />
     </div>
   );
 }

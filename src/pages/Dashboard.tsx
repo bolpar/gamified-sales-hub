@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 
 // Mock data
@@ -171,6 +172,48 @@ export default function Dashboard() {
           subtitle="agendadas para hoje"
           variant="warning"
         />
+      </div>
+
+      {/* Próximas Interações Card */}
+      <div className="bg-card rounded-lg border border-border shadow-card">
+        <div className="p-6">
+          <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-primary" />
+            Próximas Interações Agendadas
+          </h3>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+              <div>
+                <p className="font-medium text-foreground">Empresa ABC Ltda</p>
+                <p className="text-sm text-muted-foreground">Apresentar novos produtos da linha industrial</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-medium text-foreground">Hoje, 14:30</p>
+                <Badge variant="secondary">15min</Badge>
+              </div>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+              <div>
+                <p className="font-medium text-foreground">Indústria Beta</p>
+                <p className="text-sm text-muted-foreground">Follow-up de proposta comercial</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-medium text-foreground">Amanhã, 10:00</p>
+                <Badge variant="secondary">20min</Badge>
+              </div>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+              <div>
+                <p className="font-medium text-foreground">Comercial XYZ</p>
+                <p className="text-sm text-muted-foreground">Demonstração de produtos eletrônicos</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-medium text-foreground">Quinta, 16:00</p>
+                <Badge variant="secondary">10min</Badge>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Clients List */}
