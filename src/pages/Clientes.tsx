@@ -114,6 +114,11 @@ export default function Clientes() {
     texto: string;
     data: Date;
     vendedor: string;
+    canal?: string;
+    motivo?: string;
+    resumo?: string;
+    tags?: string[];
+    relacionamento?: number;
   }>>([]);
   
   const { toast } = useToast();
@@ -155,25 +160,56 @@ export default function Clientes() {
     });
   };
 
-  const handleNota = (nota: {
-    texto: string;
+  const handleNota = (interacao: {
+    canal: string;
+    motivo: string;
+    resumo: string;
+    tags: string[];
+    relacionamento: number;
     data: Date;
     vendedor: string;
+    followUp?: {
+      data: Date;
+      duracao: string;
+      canal: string;
+      objetivo: string;
+    };
   }) => {
     if (!selectedClient) return;
 
     const novaNota = {
       id: Date.now(),
       clienteId: selectedClient.id,
-      ...nota
+      texto: `${interacao.motivo} - ${interacao.resumo}`, // Para compatibilidade com a interface existente
+      data: interacao.data,
+      vendedor: interacao.vendedor,
+      canal: interacao.canal,
+      motivo: interacao.motivo,
+      resumo: interacao.resumo,
+      tags: interacao.tags,
+      relacionamento: interacao.relacionamento
     };
 
     setNotas(prev => [...prev, novaNota]);
     setPontos(prev => prev + 5);
     
+    // Se há follow-up, adicionar aos agendamentos
+    if (interacao.followUp) {
+      const novoAgendamento = {
+        id: Date.now() + 1,
+        clienteId: selectedClient.id,
+        data: interacao.followUp.data,
+        horario: interacao.followUp.data.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+        duracao: interacao.followUp.duracao,
+        objetivo: interacao.followUp.objetivo
+      };
+      setAgendamentos(prev => [...prev, novoAgendamento]);
+      setPontos(prev => prev + 10); // +10 pontos por agendamento
+    }
+    
     toast({
-      title: "Nota salva! 📝",
-      description: "+5 pontos! Nota de interação registrada com sucesso",
+      title: "Interação registrada! 📝",
+      description: `+${interacao.followUp ? 15 : 5} pontos! Interação via ${interacao.canal} registrada${interacao.followUp ? ' com follow-up agendado' : ''}`,
     });
   };
 
