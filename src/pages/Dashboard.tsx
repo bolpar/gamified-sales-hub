@@ -47,6 +47,24 @@ const mockClients = [
   { id: 3, name: "Indústria Beta", sales: 22000, target: 20000, progress: 110, lastOrder: "1 dia", status: "meta_batida" },
   { id: 4, name: "Distribuidora Gama", sales: 6800, target: 8000, progress: 85, lastOrder: "3 dias", status: "em_andamento" },
   { id: 5, name: "Atacado Delta", sales: 18500, target: 15000, progress: 123, lastOrder: "4 dias", status: "meta_batida" },
+  { id: 6, name: "Varejo Epsilon", sales: 12300, target: 14000, progress: 88, lastOrder: "5 dias", status: "em_andamento" },
+  { id: 7, name: "Construtora Zeta", sales: 25500, target: 22000, progress: 116, lastOrder: "1 dia", status: "meta_batida" },
+  { id: 8, name: "Farmácia Eta", sales: 9200, target: 11000, progress: 84, lastOrder: "6 dias", status: "em_andamento" },
+  { id: 9, name: "Supermercado Theta", sales: 31000, target: 25000, progress: 124, lastOrder: "2 dias", status: "meta_batida" },
+  { id: 10, name: "Oficina Iota", sales: 7400, target: 9000, progress: 82, lastOrder: "1 semana", status: "em_andamento" }
+];
+
+const mockInteracoes = [
+  { id: 1, cliente: "Empresa ABC Ltda", assunto: "Apresentar novos produtos da linha industrial", data: "Hoje, 14:30", duracao: "15min" },
+  { id: 2, cliente: "Indústria Beta", assunto: "Follow-up de proposta comercial", data: "Amanhã, 10:00", duracao: "20min" },
+  { id: 3, cliente: "Comercial XYZ", assunto: "Demonstração de produtos eletrônicos", data: "Quinta, 16:00", duracao: "10min" },
+  { id: 4, cliente: "Supermercado Theta", assunto: "Negociar condições de pagamento", data: "Sexta, 09:30", duracao: "25min" },
+  { id: 5, cliente: "Construtora Zeta", assunto: "Apresentar linha de ferramentas", data: "Segunda, 11:00", duracao: "30min" },
+  { id: 6, cliente: "Varejo Epsilon", assunto: "Revisão de pedido mensal", data: "Segunda, 15:00", duracao: "15min" },
+  { id: 7, cliente: "Farmácia Eta", assunto: "Discussão sobre novos medicamentos", data: "Terça, 08:45", duracao: "20min" },
+  { id: 8, cliente: "Oficina Iota", assunto: "Orçamento para peças automotivas", data: "Terça, 13:30", duracao: "18min" },
+  { id: 9, cliente: "Distribuidora Gama", assunto: "Planejamento trimestral", data: "Quarta, 14:15", duracao: "40min" },
+  { id: 10, cliente: "Atacado Delta", assunto: "Conferência sobre logística", data: "Quinta, 10:30", duracao: "35min" }
 ];
 
 export default function Dashboard() {
@@ -110,16 +128,16 @@ export default function Dashboard() {
         >
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Progresso esperado:</span>
-              <span className="font-medium">R$ {expectedProgress.toLocaleString()}</span>
+              <span className="text-card-foreground/70">Progresso esperado:</span>
+              <span className="font-medium text-card-foreground">R$ {expectedProgress.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Vendas reais:</span>
-              <span className="font-medium">R$ {salesData.currentMonth.toLocaleString()}</span>
+              <span className="text-card-foreground/70">Vendas reais:</span>
+              <span className="font-medium text-card-foreground">R$ {salesData.currentMonth.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Diferença:</span>
-              <span className={`font-medium ${progressDifference >= 0 ? 'text-success' : 'text-destructive'}`}>
+              <span className="text-card-foreground/70">Diferença:</span>
+              <span className={`font-medium ${progressDifference >= 0 ? 'text-card-foreground' : 'text-destructive'}`}>
                 {progressDifference >= 0 ? '+' : ''}R$ {progressDifference.toLocaleString()}
               </span>
             </div>
@@ -149,40 +167,7 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Meta Configuration */}
-      <div className="bg-card rounded-lg border border-border shadow-card p-6">
-        <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
-          <Target className="h-5 w-5 text-primary" />
-          Configuração de Meta
-        </h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="monthly-target">Meta Mensal (R$)</Label>
-            <Input
-              id="monthly-target"
-              type="number"
-              value={monthlyTarget}
-              onChange={(e) => setMonthlyTarget(Number(e.target.value))}
-              className="text-lg font-semibold"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label>Média Últimos 3 Meses</Label>
-            <div className="text-lg font-semibold bg-muted px-3 py-2 rounded-md">
-              R$ {salesData.avgLastThreeMonths.toLocaleString()}
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label>Crescimento Necessário</Label>
-            <div className="text-lg font-semibold text-primary bg-primary/10 px-3 py-2 rounded-md">
-              {((monthlyTarget / salesData.avgLastThreeMonths - 1) * 100).toFixed(1)}%
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Meta Configuration - Hidden for sales rep */}
 
       {/* Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -207,9 +192,9 @@ export default function Dashboard() {
 
         <MetricCard
           title="Próximas Interações"
-          value="5"
+          value="10"
           icon={Calendar}
-          subtitle="agendadas para hoje"
+          subtitle="agendadas esta semana"
           variant="warning"
         />
 
@@ -223,37 +208,19 @@ export default function Dashboard() {
             <Calendar className="h-5 w-5 text-primary" />
             Próximas Interações Agendadas
           </h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-              <div>
-                <p className="font-medium text-foreground">Empresa ABC Ltda</p>
-                <p className="text-sm text-muted-foreground">Apresentar novos produtos da linha industrial</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[400px] overflow-y-auto">
+            {mockInteracoes.slice(0, 10).map((interacao) => (
+              <div key={interacao.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-foreground truncate">{interacao.cliente}</p>
+                  <p className="text-sm text-muted-foreground truncate">{interacao.assunto}</p>
+                </div>
+                <div className="text-right ml-2">
+                  <p className="text-sm font-medium text-foreground">{interacao.data}</p>
+                  <Badge variant="secondary" className="text-xs">{interacao.duracao}</Badge>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="text-sm font-medium text-foreground">Hoje, 14:30</p>
-                <Badge variant="secondary">15min</Badge>
-              </div>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-              <div>
-                <p className="font-medium text-foreground">Indústria Beta</p>
-                <p className="text-sm text-muted-foreground">Follow-up de proposta comercial</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-medium text-foreground">Amanhã, 10:00</p>
-                <Badge variant="secondary">20min</Badge>
-              </div>
-            </div>
-            <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-              <div>
-                <p className="font-medium text-foreground">Comercial XYZ</p>
-                <p className="text-sm text-muted-foreground">Demonstração de produtos eletrônicos</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-medium text-foreground">Quinta, 16:00</p>
-                <Badge variant="secondary">10min</Badge>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
@@ -270,57 +237,49 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <div className="p-6">
-          <div className="space-y-4">
+        <div className="p-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto">
             {mockClients.map((client) => (
-              <div key={client.id} className="flex items-center justify-between p-4 rounded-lg border border-border hover:shadow-hover transition-all duration-200 bg-gradient-card">
-                <div className="flex items-center gap-4">
-                  <div className={`w-3 h-3 rounded-full ${
+              <div key={client.id} className="flex items-center justify-between p-3 rounded-lg border border-border hover:shadow-hover transition-all duration-200 bg-gradient-card">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className={`w-2 h-2 rounded-full ${
                     client.status === 'meta_batida' ? 'bg-success animate-pulse-success' : 'bg-warning'
                   }`} />
                   
-                  <div>
-                    <h3 className="font-semibold text-foreground">{client.name}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Último pedido: {client.lastOrder}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-foreground text-sm truncate">{client.name}</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Último: {client.lastOrder}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-6">
-                  <div className="text-right">
-                    <p className="text-sm text-muted-foreground">Vendas / Meta</p>
-                    <p className="font-semibold">
-                      R$ {client.sales.toLocaleString()} / R$ {client.target.toLocaleString()}
+                <div className="flex items-center gap-3 text-right">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Vendas/Meta</p>
+                    <p className="font-medium text-sm">
+                      {client.sales.toLocaleString()}k / {client.target.toLocaleString()}k
                     </p>
                   </div>
 
-                  <div className="text-right min-w-[100px]">
-                    <p className="text-sm text-muted-foreground">Progresso</p>
-                    <div className="flex items-center gap-2">
-                      <div className="w-16 bg-muted rounded-full h-2">
+                  <div className="min-w-[60px]">
+                    <p className="text-xs text-muted-foreground">Progresso</p>
+                    <div className="flex items-center gap-1">
+                      <div className="w-12 bg-muted rounded-full h-1.5">
                         <div 
-                          className={`h-2 rounded-full ${
+                          className={`h-1.5 rounded-full ${
                             client.progress >= 100 ? 'bg-success' : 'bg-primary'
                           }`}
                           style={{ width: `${Math.min(client.progress, 100)}%` }}
                         />
                       </div>
-                      <span className={`text-sm font-medium ${
+                      <span className={`text-xs font-medium ${
                         client.progress >= 100 ? 'text-success' : 'text-foreground'
                       }`}>
                         {client.progress}%
                       </span>
                     </div>
                   </div>
-
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="hover:bg-primary hover:text-primary-foreground"
-                  >
-                    Ver Detalhes
-                  </Button>
                 </div>
               </div>
             ))}
