@@ -1,5 +1,7 @@
 import { DashboardCard } from "@/components/DashboardCard";
 import { MetricCard } from "@/components/MetricCard";
+import { HistoricoPedidosModal } from "@/components/HistoricoPedidosModal";
+import { MetasAtendimentoCard } from "@/components/MetasAtendimentoCard";
 import { 
   TrendingUp, 
   DollarSign, 
@@ -10,13 +12,20 @@ import {
   UserPlus,
   Calendar,
   Clock,
-  Star
+  Star,
+  BarChart3
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
+import { 
+  getBusinessDaysInMonth, 
+  getCurrentBusinessDay, 
+  calculateDailyTarget, 
+  calculateExpectedProgress 
+} from "@/utils/businessDays";
 
 // Mock data
 const salesData = {
@@ -42,8 +51,17 @@ const mockClients = [
 
 export default function Dashboard() {
   const [monthlyTarget, setMonthlyTarget] = useState(salesData.monthlyTarget);
+  const [showOrderHistory, setShowOrderHistory] = useState(false);
+  
   const progressToTarget = (salesData.currentMonth / monthlyTarget) * 100;
   const salesGrowth = ((salesData.currentMonth - salesData.lastMonth) / salesData.lastMonth * 100);
+  
+  // Cálculos de dias úteis
+  const totalBusinessDays = getBusinessDaysInMonth();
+  const currentBusinessDay = getCurrentBusinessDay();
+  const dailyTarget = calculateDailyTarget(monthlyTarget);
+  const expectedProgress = calculateExpectedProgress(monthlyTarget);
+  const progressDifference = salesData.currentMonth - expectedProgress;
 
   return (
     <div className="space-y-6">
@@ -83,22 +101,44 @@ export default function Dashboard() {
           }}
         />
 
-        <MetricCard
-          title="Meta Mensal"
-          value={`R$ ${monthlyTarget.toLocaleString()}`}
-          icon={Target}
-          progress={progressToTarget}
-          subtitle={`${progressToTarget.toFixed(1)}% concluído`}
-          variant={progressToTarget >= 100 ? "success" : "default"}
-        />
-
         <DashboardCard
-          title="Pedidos no Mês"
-          value={salesData.orders}
-          subtitle={`Ticket médio: R$ ${salesData.avgTicket.toLocaleString()}`}
-          icon={ShoppingCart}
-          variant="default"
-        />
+          title="Previsão por Dias Úteis"
+          value={`${currentBusinessDay}/${totalBusinessDays}`}
+          subtitle={`Meta diária: R$ ${dailyTarget.toLocaleString()}`}
+          icon={BarChart3}
+          variant={progressDifference >= 0 ? "success" : "warning"}
+        >
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Progresso esperado:</span>
+              <span className="font-medium">R$ {expectedProgress.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Vendas reais:</span>
+              <span className="font-medium">R$ {salesData.currentMonth.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Diferença:</span>
+              <span className={`font-medium ${progressDifference >= 0 ? 'text-success' : 'text-destructive'}`}>
+                {progressDifference >= 0 ? '+' : ''}R$ {progressDifference.toLocaleString()}
+              </span>
+            </div>
+          </div>
+        </DashboardCard>
+
+        <div 
+          className="cursor-pointer"
+          onClick={() => setShowOrderHistory(true)}
+        >
+          <DashboardCard
+            title="Pedidos no Mês"
+            value={salesData.orders}
+            subtitle={`Ticket médio: R$ ${salesData.avgTicket.toLocaleString()}`}
+            icon={ShoppingCart}
+            variant="default"
+            className="hover:scale-105 transition-transform"
+          />
+        </div>
 
         <DashboardCard
           title="Pontos Acumulados"
@@ -145,7 +185,7 @@ export default function Dashboard() {
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <MetricCard
           title="Clientes Novos"
           value={salesData.newClients}
@@ -172,6 +212,8 @@ export default function Dashboard() {
           subtitle="agendadas para hoje"
           variant="warning"
         />
+
+        <MetasAtendimentoCard />
       </div>
 
       {/* Próximas Interações Card */}
@@ -285,6 +327,12 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Modal de Histórico de Pedidos */}
+      <HistoricoPedidosModal 
+        isOpen={showOrderHistory}
+        onClose={() => setShowOrderHistory(false)}
+      />
     </div>
   );
 }
